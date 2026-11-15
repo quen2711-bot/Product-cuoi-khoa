@@ -1,76 +1,108 @@
 @extends('Layout.master')
-@section('title', $post->title)
+@section('title', $post->title . ' - Blog Mỹ Phẩm')
 @section('content')
-<div style="max-width: 800px; margin: 0 auto;">
-    <h1 class="text-center">{{ $post->title }}</h1>
-    
-    <p class="text-center" style="color: #907A70; margin-bottom: 30px;">
-        ✍️ {{ $post->user->name }} &nbsp;|&nbsp; 📅 {{ $post->created_at->format('d/m/Y') }} &nbsp;|&nbsp; 📂 {{ $post->category->name }}
+<style>
+    .post-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(139, 90, 43, 0.15);
+        margin: 20px 0;
+    }
+    .comment-box {
+        background-color: #FFF8F5;
+        border: 1px solid #F0D8C8;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+    .btn-pink {
+        background-color: #B97A65;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .btn-pink:hover {
+        background-color: #9A6452;
+    }
+    .tag-badge {
+        background-color: #F7E4D9;
+        color: #8B5A2B;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+</style>
+
+<div style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
+    <h1 style="text-align: center; color: #6B4226; font-size: 36px; margin-bottom: 10px;">
+        {{ $post->title }}
+    </h1>
+
+    <p style="text-align: center; color: #8B5A2B; margin-bottom: 30px;">
+        👩‍💻 {{ $post->user->name }} | 📅 {{ $post->created_at->format('d/m/Y') }} | 
+        📂 {{ $post->category ? $post->category->name : 'Chưa phân loại' }}
     </p>
 
     @if($post->image)
-        <img src="{{ asset('storage/' . $post->image) }}" style="width: 100%; border-radius: 15px; margin-bottom: 30px; object-fit: cover; max-height: 400px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <img src="{{ asset('storage/' . $post->image) }}" 
+             alt="{{ $post->title }}" 
+             class="post-image"
+             style="max-height: 400px; object-fit: cover;">
+    </div>
     @endif
 
-    <div style="font-size: 17px; line-height: 1.8; margin-bottom: 30px;">
+    <div style="color: #5C3A21; font-size: 17px; line-height: 1.8; margin-bottom: 30px;">
         {!! nl2br(e($post->content)) !!}
     </div>
 
     @if($post->tags->count() > 0)
-        <p style="margin-bottom: 25px;">
-            <strong>Thẻ:</strong>
-            @foreach($post->tags as $tag)
-                <span class="badge" style="background: #F8E2D6; color: #8B5A4B; margin: 3px;">{{ $tag->name }}</span>
-            @endforeach
-        </p>
+    <div style="margin-bottom: 30px;">
+        <strong style="color: #6B4226;">Thẻ:</strong>
+        @foreach($post->tags as $tag)
+            <span class="tag-badge" style="margin-left: 5px;">{{ $tag->name }}</span>
+        @endforeach
+    </div>
     @endif
 
-    @if(Auth::check() && Auth::id() == $post->user_id)
-        <div style="margin-bottom: 40px;">
-            <a href="{{ route('post.edit', $post) }}" class="btn btn-warning">✏️ Sửa bài</a>
-            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn chắc chắn xóa bài viết này?')">
-                @csrf @method('DELETE')
-                <button class="btn btn-danger">🗑️ Xóa vào thùng rác</button>
-            </form>
+    <hr style="border: none; border-top: 1px solid #E8D4C4; margin: 30px 0;">
+
+    <div class="comment-box">
+        <h3 style="color: #6B4226; margin-top: 0;">💬 Bình luận ({{ $post->comments->count() }})</h3>
+
+        @forelse($post->comments as $comment)
+        <div style="background: #FFF; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <strong style="color: #8B5A2B;">{{ $comment->user->name }}</strong>
+            <small style="color: #A08060;"> - {{ $comment->created_at->format('d/m/Y H:i') }}</small>
+            <p style="margin-top: 8px; color: #5C3A21;">{{ $comment->content }}</p>
         </div>
-    @endif
+        @empty
+        <p style="color: #A08060; font-style: italic;">Chưa có bình luận nào. Hãy là người đầu tiên bình luận nhé!</p>
+        @endforelse
 
-    <hr style="border: none; border-top: 2px solid #F0E2DC; margin: 40px 0;">
-
-    <h3>💬 Bình luận ({{ $post->comments->count() }})</h3>
-
-    @auth
-        <form method="POST" action="{{ route('comments.store', $post) }}" style="margin-bottom: 35px;">
+        @auth
+        <form action="{{ route('comments.store', $post) }}" method="POST">
             @csrf
-            <div class="form-group">
-                <label class="form-label">Viết bình luận của bạn</label>
-                <textarea name="content" class="form-control" rows="4" required placeholder="Chia sẻ cảm nhận về bài viết này..."></textarea>
+            <div style="margin-top: 25px;">
+                <label style="color: #6B4226; font-weight: bold;">Viết bình luận của bạn:</label>
+                <textarea name="content" rows="4" required
+                    style="width: 100%; margin-top: 8px; padding: 12px; border: 1px solid #E0C8B8; border-radius: 8px; background: #FFF; color: #5C3A21;"
+                    placeholder="Chia sẻ cảm nhận về bài viết này..."></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Gửi bình luận</button>
+            <button type="submit" class="btn-pink" style="margin-top: 12px;">Gửi bình luận</button>
         </form>
-    @else
-        <p style="margin-bottom: 25px; color: #706058;">
-            Vui lòng <a href="{{ route('login') }}">đăng nhập</a> để bình luận.
+        @else
+        <p style="margin-top: 20px; color: #8B5A2B;">
+            👉 <a href="{{ route('login') }}" style="color: #B97A65; font-weight: bold;">Đăng nhập</a> để bình luận
         </p>
-    @endauth
+        @endauth
+    </div>
 
-    @foreach($post->comments as $cmt)
-        <div class="card" style="margin-bottom: 15px;">
-            <div class="card-body" style="padding: 18px 22px;">
-                <p style="margin-bottom: 8px;">
-                    <strong style="color: #704A3C;">{{ $cmt->user->name }}</strong>
-                    <span style="color: #907A70; font-size: 13px; margin-left: 10px;">{{ $cmt->created_at->diffForHumans() }}</span>
-                </p>
-                <p style="color: #5A3E36; margin-bottom: 10px;">{{ $cmt->content }}</p>
-                
-                @if(Auth::check() && (Auth::id() == $cmt->user_id || Auth::id() == $post->user_id || Auth::user()->is_admin))
-                    <form action="{{ route('comments.destroy', $cmt) }}" method="POST" class="d-inline" onsubmit="return confirm('Xóa bình luận này?')">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">Xóa</button>
-                    </form>
-                @endif
-            </div>
-        </div>
-    @endforeach
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="{{ route('blog') }}" style="color: #B97A65; text-decoration: none;">← Quay lại Blog</a>
+    </div>
 </div>
 @endsection

@@ -43,13 +43,15 @@
                             @if(!$post->deleted_at)
                                 <a href="{{ route('post.edit', $post) }}" class="btn btn-warning" style="padding: 6px 12px; font-size: 13px;">Sửa</a>
                                 <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline" onsubmit="return confirm('Xóa bài viết này?')">
-                                    @csrf @method('DELETE')
+                                    @csrf
+                                    @method('DELETE')
                                     <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">Xóa</button>
                                 </form>
                             @else
                                 <a href="{{ route('posts.restore', $post->id) }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">Khôi phục</a>
                                 <form action="{{ route('posts.forceDelete', $post->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Xóa vĩnh viễn? Không thể hoàn tác!')">
-                                    @csrf @method('DELETE')
+                                    @csrf
+                                    @method('DELETE')
                                     <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">Xóa vĩnh viễn</button>
                                 </form>
                             @endif
@@ -60,3 +62,9 @@
         </table>
     @else
         <div class="text-center" style="padding: 60px 20px; color: #907A70;">
+            <p>🌸 Bạn chưa có bài viết nào.</p>
+            <a href="{{ route('post.create') }}" class="btn btn-primary" style="margin-top: 15px;">+ Viết bài đầu tiên</a>
+        </div>
+    @endif
+</div>
+@endsection
