@@ -9,8 +9,25 @@ use Illuminate\Http\Request;
 
 class WelcomeController extends Controller
 {
-    // Trang chủ
+    // Trang chủ - Hiển thị bài viết mới nhất
     public function index(Request $request)
+    {
+        // Lấy 6 bài viết mới nhất đã xuất bản
+        $posts = Post::with(['user', 'category'])
+            ->where('status', 'published')
+            ->latest()
+            ->take(6)
+            ->get();
+
+        // Lấy danh mục và thẻ cho bộ lọc
+        $categories = Category::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+
+        return view('welcome', compact('posts', 'categories', 'tags'));
+    }
+
+    // Trang Blog - Danh sách tất cả bài viết
+    public function blog(Request $request)
     {
         $query = Post::with(['user', 'category'])
             ->where('status', 'published');
@@ -35,23 +52,6 @@ class WelcomeController extends Controller
             });
         }
 
-        $posts = $query->latest()->paginate(9);
-        $categories = Category::orderBy('name')->get();
-        $tags = Tag::orderBy('name')->get();
-
-        return view('welcome', compact('posts', 'categories', 'tags'));
-    }
-
-    // Trang blog - danh sách bài viết
-    public function blog(Request $request)
-    {
-        $query = Post::with(['user', 'category'])
-            ->where('status', 'published');
-
-        if ($request->search) {
-            $query->where('title', 'like', "%{$request->search}%");
-        }
-
         $posts = $query->latest()->paginate(12);
         $categories = Category::orderBy('name')->get();
         $tags = Tag::orderBy('name')->get();
@@ -67,7 +67,6 @@ class WelcomeController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        // ✅ Đúng tên view là post_show
         return view('post_show', compact('post'));
     }
 }
